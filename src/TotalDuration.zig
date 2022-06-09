@@ -5,7 +5,7 @@ pub const TotalDuration = struct {
     prev: ?f64 = null,
     max_idle: f64 = 300,
 
-    fn add(self: *TotalDuration, time: f64) void {
+    pub fn add(self: *TotalDuration, time: f64) void {
         const prev = self.prev orelse time;
         const diff = time - prev;
         if (diff < self.max_idle) self.total += diff;

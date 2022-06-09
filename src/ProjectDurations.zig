@@ -1,8 +1,7 @@
 const std = @import("std");
 
-const ProjectDurations = struct {
-    map: std.StringArrayHashMap(std.json.Value) = undefined,
-    max_idle: f64 = 300,
+pub const ProjectDurations = struct {
+    map: ?std.StringArrayHashMap(std.json.Value) = null,
     prev_time: ?f64 = null,
     prev_project: ?[]const u8 = null,
 
@@ -11,7 +10,7 @@ const ProjectDurations = struct {
     }
 
     pub fn deinit(self: *ProjectDurations) void {
-        self.map.deinit();
+        if (self.map) |*m| m.deinit();
     }
 
     pub fn add(self: *ProjectDurations, time: f64, project: []const u8) !void {
@@ -19,9 +18,9 @@ const ProjectDurations = struct {
         const prev_project = self.prev_project orelse project;
         const diff = time - prev_time;
 
-        if (diff < self.max_idle) {
-            const prev = self.map.get(prev_project) orelse std.json.Value{ .Float = 0 };
-            try self.map.put(prev_project, std.json.Value{ .Float = prev.Float + diff });
+        if (diff < 300) {
+            const prev = self.map.?.get(prev_project) orelse std.json.Value{ .Float = 0 };
+            try self.map.?.put(prev_project, std.json.Value{ .Float = prev.Float + diff });
         }
 
         self.prev_time = time;
@@ -29,14 +28,14 @@ const ProjectDurations = struct {
     }
 
     pub fn get(self: *ProjectDurations, project: []const u8) ?f64 {
-        if (self.map.get(project)) |v| {
+        if (self.map.?.get(project)) |v| {
             return v.Float;
         } else return null;
     }
 
     pub fn json(self: *ProjectDurations, allocator: std.mem.Allocator) !std.ArrayList(u8) {
         var string = std.ArrayList(u8).init(allocator);
-        try (std.json.Value{ .Object = self.map }).jsonStringify(.{}, string.writer());
+        try (std.json.Value{ .Object = self.map.? }).jsonStringify(.{}, string.writer());
         return string;
     }
 };
