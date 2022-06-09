@@ -6,9 +6,8 @@ const TimelineSegment = struct {
     to: f64,
 };
 
-const Timeline = struct {
-    timeline: std.ArrayList(TimelineSegment) = undefined,
-    max_idle: f64 = 300,
+pub const Timeline = struct {
+    timeline: ?std.ArrayList(TimelineSegment) = null,
     prev_time: ?f64 = null,
     prev_from: ?f64 = null,
     prev_project: ?[]const u8 = null,
@@ -18,7 +17,7 @@ const Timeline = struct {
     }
 
     pub fn deinit(self: *Timeline) void {
-        self.timeline.deinit();
+        if (self.timeline) |t| t.deinit();
     }
 
     pub fn add(self: *Timeline, time: f64, project: []const u8) !void {
@@ -30,15 +29,15 @@ const Timeline = struct {
         const prev_project = self.prev_project orelse project;
         const diff = time - prev_time;
 
-        if (diff < self.max_idle) {
+        if (diff < 300) {
             if (!std.mem.eql(u8, project, prev_project)) {
                 const segment = TimelineSegment{ .project = prev_project, .from = prev_from, .to = time };
-                try self.timeline.append(segment);
+                try self.timeline.?.append(segment);
                 self.prev_from = time;
             }
         } else {
             const segment = TimelineSegment{ .project = prev_project, .from = prev_from, .to = prev_time };
-            try self.timeline.append(segment);
+            try self.timeline.?.append(segment);
             self.prev_from = time;
         }
 
@@ -52,13 +51,13 @@ const Timeline = struct {
             const prev_time = self.prev_time.?;
             const prev_from = self.prev_from.?;
             const segment = TimelineSegment{ .project = prev_project, .from = prev_from, .to = prev_time };
-            try self.timeline.append(segment);
+            try self.timeline.?.append(segment);
         }
     }
 
     pub fn json(self: *Timeline, allocator: std.mem.Allocator) !std.ArrayList(u8) {
         var string = std.ArrayList(u8).init(allocator);
-        try std.json.stringify(self.timeline.items, .{}, string.writer());
+        try std.json.stringify(self.timeline.?.items, .{}, string.writer());
         return string;
     }
 };
