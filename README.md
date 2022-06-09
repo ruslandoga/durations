@@ -22,3 +22,5 @@ These functions would produce
 | ------- | ---------- | ---------- |
 | w1      | 1654761510 | 1654761530 |
 | w2      | 1654761530 | 1654761539 |
+
+(to be used in a custom aggregate function for sqlite)
