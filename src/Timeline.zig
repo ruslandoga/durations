@@ -105,6 +105,7 @@ test "it works" {
 
     const json = try timeline.json(testing.allocator);
     try testing.expectEqualStrings(
+    // TODO can encode to [["w1",1.654761539e+09,1.654761579e+09],["w1",1.654761879e+09,1.654761899e+09],["w2",1.654761899e+09,1.654761939e+09]]?
         \\[{"project":"w1","from":1.654761539e+09,"to":1.654761579e+09},{"project":"w1","from":1.654761879e+09,"to":1.654761899e+09},{"project":"w2","from":1.654761899e+09,"to":1.654761939e+09}]
     , json.items);
     json.deinit();
