@@ -56,7 +56,7 @@ const Timeline = struct {
         }
     }
 
-    pub fn json(self: Timeline, allocator: std.mem.Allocator) !std.ArrayList(u8) {
+    pub fn json(self: *Timeline, allocator: std.mem.Allocator) !std.ArrayList(u8) {
         var string = std.ArrayList(u8).init(allocator);
         try std.json.stringify(self.timeline.items, .{}, string.writer());
         return string;

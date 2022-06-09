@@ -1,13 +1,13 @@
 const std = @import("std");
 
 const ProjectDurations = struct {
-    map: std.StringHashMap(f64) = undefined,
+    map: std.StringArrayHashMap(std.json.Value) = undefined,
     max_idle: f64 = 300,
     prev_time: ?f64 = null,
     prev_project: ?[]const u8 = null,
 
     pub fn init(self: *ProjectDurations, allocator: std.mem.Allocator) void {
-        self.map = std.StringHashMap(f64).init(allocator);
+        self.map = std.StringArrayHashMap(std.json.Value).init(allocator);
     }
 
     pub fn deinit(self: *ProjectDurations) void {
@@ -20,8 +20,8 @@ const ProjectDurations = struct {
         const diff = time - prev_time;
 
         if (diff < self.max_idle) {
-            const prev = self.map.get(prev_project) orelse 0;
-            try self.map.put(prev_project, prev + diff);
+            const prev = self.map.get(prev_project) orelse std.json.Value{ .Float = 0 };
+            try self.map.put(prev_project, std.json.Value{ .Float = prev.Float + diff });
         }
 
         self.prev_time = time;
@@ -29,7 +29,15 @@ const ProjectDurations = struct {
     }
 
     pub fn get(self: *ProjectDurations, project: []const u8) ?f64 {
-        return self.map.get(project);
+        if (self.map.get(project)) |v| {
+            return v.Float;
+        } else return null;
+    }
+
+    pub fn json(self: *ProjectDurations, allocator: std.mem.Allocator) !std.ArrayList(u8) {
+        var string = std.ArrayList(u8).init(allocator);
+        try (std.json.Value{ .Object = self.map }).jsonStringify(.{}, string.writer());
+        return string;
     }
 };
 
@@ -50,5 +58,9 @@ test "it works" {
     try testing.expectEqual(@as(f64, 60), durations.get("w1").?);
     try testing.expectEqual(@as(f64, 40), durations.get("w2").?);
 
-    // TODO durations.json()
+    const json = try durations.json(testing.allocator);
+    try testing.expectEqualStrings(
+        \\{"w1":6.0e+01,"w2":4.0e+01}
+    , json.items);
+    json.deinit();
 }
