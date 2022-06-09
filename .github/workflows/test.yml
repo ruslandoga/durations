@@ -12,6 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Install deps
+        run: sudo apt-get update && sudo apt-get install build-essential
+
       - name: Set up Zig
         uses: goto-bus-stop/setup-zig@v1
         with:
