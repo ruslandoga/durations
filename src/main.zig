@@ -76,6 +76,12 @@ fn sqliteFree(
     sqlite3_api.free.?(buf.ptr);
 }
 
+fn sliceFromValue(sqlite_value: *c.sqlite3_value) []const u8 {
+    const size = @intCast(usize, sqlite3_api.value_bytes.?(sqlite_value));
+    const value = sqlite3_api.value_text.?(sqlite_value); // TODO not null?
+    return value.?[0..size];
+}
+
 // TODO state: [*c]
 
 fn totalDurationStep(ctx: ?*c.sqlite3_context, argc: c_int, argv: [*c]?*c.sqlite3_value) callconv(.C) void {
@@ -99,7 +105,7 @@ fn projectDurationsStep(ctx: ?*c.sqlite3_context, argc: c_int, argv: [*c]?*c.sql
     if (state.?.map == null) state.?.init(sqlite_allocator);
     // TODO ensure correct types
     const time: f64 = sqlite3_api.value_double.?(argv[0]);
-    const project = sqlite3_api.value_text.?(argv[1]);
+    const project = sliceFromValue(argv[1].?);
     state.?.add(time, project) catch return sqlite3_api.result_error_nomem.?(ctx);
 }
 
@@ -122,7 +128,7 @@ fn timelineStep(ctx: ?*c.sqlite3_context, argc: c_int, argv: [*c]?*c.sqlite3_val
     if (state.?.timeline == null) state.?.init(sqlite_allocator);
     // TODO ensure correct types
     const time: f64 = sqlite3_api.value_double.?(argv[0]);
-    const project = sqlite3_api.value_text.?(argv[1]);
+    const project = sliceFromValue(argv[1].?);
     state.?.add(time, project) catch return sqlite3_api.result_error_nomem.?(ctx);
 }
 
