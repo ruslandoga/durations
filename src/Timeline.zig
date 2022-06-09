@@ -55,6 +55,12 @@ const Timeline = struct {
             try self.timeline.append(segment);
         }
     }
+
+    pub fn json(self: Timeline, allocator: std.mem.Allocator) !std.ArrayList(u8) {
+        var string = std.ArrayList(u8).init(allocator);
+        try std.json.stringify(self.timeline.items, .{}, string.writer());
+        return string;
+    }
 };
 
 const testing = std.testing;
@@ -97,5 +103,9 @@ test "it works" {
         }
     }
 
-    // TODO timeline.json()
+    const json = try timeline.json(testing.allocator);
+    try testing.expectEqualStrings(
+        \\[{"project":"w1","from":1.654761539e+09,"to":1.654761579e+09},{"project":"w1","from":1.654761879e+09,"to":1.654761899e+09},{"project":"w2","from":1.654761899e+09,"to":1.654761939e+09}]
+    , json.items);
+    json.deinit();
 }
