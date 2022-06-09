@@ -6,6 +6,7 @@ pub fn build(b: *std.build.Builder) void {
     const mode = b.standardReleaseOptions();
 
     const lib = b.addStaticLibrary("durations", "src/main.zig");
+    lib.linkLibC();
     lib.addIncludeDir("src");
     lib.force_pic = true;
     lib.linkage = .dynamic;
