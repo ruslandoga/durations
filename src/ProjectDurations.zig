@@ -10,7 +10,7 @@ pub const ProjectDurations = struct {
     }
 
     pub fn deinit(self: *ProjectDurations) void {
-        if (self.map) |m| m.deinit();
+        if (self.map) |*m| m.deinit();
     }
 
     pub fn add(self: *ProjectDurations, time: f64, project: []const u8) !void {

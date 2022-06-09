@@ -17,7 +17,7 @@ pub const Timeline = struct {
     }
 
     pub fn deinit(self: *Timeline) void {
-        if (self.timeline) |t| t.deinit();
+        if (self.timeline) |*t| t.deinit();
     }
 
     pub fn add(self: *Timeline, time: f64, project: []const u8) !void {

@@ -99,7 +99,7 @@ fn projectDurationsStep(ctx: ?*c.sqlite3_context, argc: c_int, argv: [*c]?*c.sql
     if (state.?.map == null) state.?.init(sqlite_allocator);
     // TODO ensure correct types
     const time: f64 = sqlite3_api.value_double.?(argv[0]);
-    const project: []const u8 = sqlite3_api.value_text.?(argv[1]);
+    const project = sqlite3_api.value_text.?(argv[1]);
     state.?.add(time, project) catch return sqlite3_api.result_error_nomem.?(ctx);
 }
 
@@ -110,7 +110,9 @@ fn projectDurationsFinal(ctx: ?*c.sqlite3_context) callconv(.C) void {
     const json = state.?.json(sqlite_allocator) catch return sqlite3_api.result_error_nomem.?(ctx);
     defer json.deinit();
 
-    sqlite3_api.result_text.?(ctx, json);
+    // TODO
+    const text: [*c]const u8 = json.items.ptr;
+    sqlite3_api.result_text.?(ctx, text, -1, c.SQLITE_STATIC);
 }
 
 fn timelineStep(ctx: ?*c.sqlite3_context, argc: c_int, argv: [*c]?*c.sqlite3_value) callconv(.C) void {
@@ -120,7 +122,7 @@ fn timelineStep(ctx: ?*c.sqlite3_context, argc: c_int, argv: [*c]?*c.sqlite3_val
     if (state.?.timeline == null) state.?.init(sqlite_allocator);
     // TODO ensure correct types
     const time: f64 = sqlite3_api.value_double.?(argv[0]);
-    const project: []const u8 = sqlite3_api.value_text.?(argv[1]);
+    const project = sqlite3_api.value_text.?(argv[1]);
     state.?.add(time, project) catch return sqlite3_api.result_error_nomem.?(ctx);
 }
 
@@ -133,7 +135,9 @@ fn timelineFinal(ctx: ?*c.sqlite3_context) callconv(.C) void {
     const json = state.?.json(sqlite_allocator) catch return sqlite3_api.result_error_nomem.?(ctx);
     defer json.deinit();
 
-    sqlite3_api.result_text.?(ctx, json);
+    // TODO
+    const text: [*c]const u8 = json.items.ptr;
+    sqlite3_api.result_text.?(ctx, text, -1, c.SQLITE_STATIC); // or SQLITE_TRANSIENT
 }
 
 pub export fn sqlite3_extension_init(db: ?*c.sqlite3, pzErrMsg: [*c][*c]u8, pApi: [*c]c.sqlite3_api_routines) c_int {
